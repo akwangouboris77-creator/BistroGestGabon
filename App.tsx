@@ -25,6 +25,8 @@ import SalesHistory from './components/SalesHistory';
 import SettingsComponent from './components/Settings';
 import Login from './components/Login';
 import Billing from './components/Billing';
+import BackupReminder from './components/BackupReminder';
+import PaymentReminders from './components/PaymentReminders';
 
 const STORES: Store[] = [
   { 
@@ -85,8 +87,14 @@ const App: React.FC = () => {
     monthlyRent: 0,
     monthlyElectricity: 0,
     monthlyWater: 0,
+    monthlyWifi: 0,
+    monthlyCanal: 0,
+    monthlyDjSalary: 0,
+    monthlyManagerSalary: 0,
     appSubscription: 0,
-    installationDate: Date.now()
+    installationDate: Date.now(),
+    paymentRemindersEnabled: true,
+    daysBeforeReminder: 3
   });
 
   // CHARGEMENT INITIAL DEPUIS INDEXEDDB
@@ -120,13 +128,13 @@ const App: React.FC = () => {
         
         if (savedProducts.length > 0) setProducts(savedProducts);
         else {
-          await db.products.bulkAdd(INITIAL_PRODUCTS);
+          await db.products.bulkPut(INITIAL_PRODUCTS);
           setProducts(INITIAL_PRODUCTS);
         }
 
         if (savedStaff.length > 0) setStaff(savedStaff);
         else {
-          await db.staff.bulkAdd(INITIAL_STAFF);
+          await db.staff.bulkPut(INITIAL_STAFF);
           setStaff(INITIAL_STAFF);
         }
 
@@ -359,6 +367,16 @@ const App: React.FC = () => {
           )}
         </div>
       </main>
+
+      {user && user.role === UserRole.OWNER && (
+        <BackupReminder 
+          lastBackupDate={settings.lastBackupDate} 
+          salesCount={sales.length} 
+          onExport={() => setActiveTab('settings')} 
+        />
+      )}
+
+      <PaymentReminders settings={settings} />
     </div>
   );
 };
